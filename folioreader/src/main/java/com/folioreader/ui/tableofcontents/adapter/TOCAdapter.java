@@ -25,9 +25,8 @@ import java.util.ArrayList;
 public class TOCAdapter extends MultiLevelExpIndListAdapter {
 
     private static final int LEVEL_ONE_PADDING_PIXEL = 15;
-
-    private TOCCallback callback;
     private final Context mContext;
+    private TOCCallback callback;
     private String selectedHref;
     private Config mConfig;
 
@@ -36,6 +35,13 @@ public class TOCAdapter extends MultiLevelExpIndListAdapter {
         mContext = context;
         this.selectedHref = selectedHref;
         this.mConfig = config;
+    }
+
+    private static int getPaddingPixels(Context context, int dpValue) {
+        // Get the screen's density scale
+        final float scale = context.getResources().getDisplayMetrics().density;
+        // Convert the dps to pixels, based on density scale
+        return (int) (dpValue * scale + 0.5f);
     }
 
     public void setCallback(TOCCallback callback) {
@@ -60,18 +66,25 @@ public class TOCAdapter extends MultiLevelExpIndListAdapter {
         }
         viewHolder.sectionTitle.setText(tocLinkWrapper.getTocLink().bookTitle);
 
-        if(mConfig.isNightMode()) {
-            if (tocLinkWrapper.isGroup()) {
-                viewHolder.children.setImageResource(R.drawable.ic_plus_white_24dp);
-            } else {
-                viewHolder.children.setImageResource(R.drawable.ic_minus_white_24dp);
-            }
-        } else {
-            if (tocLinkWrapper.isGroup()) {
-                viewHolder.children.setImageResource(R.drawable.ic_plus_black_24dp);
-            } else {
-                viewHolder.children.setImageResource(R.drawable.ic_minus_black_24dp);
-            }
+        switch (mConfig.getColorMode()) {
+            case white:
+                if (tocLinkWrapper.isGroup()) {
+                    viewHolder.children.setImageResource(R.drawable.ic_plus_black_24dp);
+                } else {
+                    viewHolder.children.setImageResource(R.drawable.ic_minus_black_24dp);
+                }
+                break;
+            case black:
+                if (tocLinkWrapper.isGroup()) {
+                    viewHolder.children.setImageResource(R.drawable.ic_plus_white_24dp);
+                } else {
+                    viewHolder.children.setImageResource(R.drawable.ic_minus_white_24dp);
+                }
+                break;
+            case beige:
+                break;
+            default:
+                break;
         }
 
         int leftPadding = getPaddingPixels(mContext, LEVEL_ONE_PADDING_PIXEL) * (tocLinkWrapper.getIndentation());
@@ -98,21 +111,35 @@ public class TOCAdapter extends MultiLevelExpIndListAdapter {
             viewHolder.children.setVisibility(View.VISIBLE);
         }
 
-        if(mConfig.isNightMode()){
-            viewHolder.container.setBackgroundColor(ContextCompat.getColor(mContext,
-                    R.color.black));
-            viewHolder.children.setBackgroundColor(ContextCompat.getColor(mContext,
-                    R.color.black));
-            viewHolder.sectionTitle.setTextColor(ContextCompat.getColor(mContext,
-                    R.color.white));
-        } else {
-            viewHolder.container.setBackgroundColor(ContextCompat.getColor(mContext,
-                    R.color.white));
-            viewHolder.children.setBackgroundColor(ContextCompat.getColor(mContext,
-                    R.color.white));
-            viewHolder.sectionTitle.setTextColor(ContextCompat.getColor(mContext,
-                    R.color.black));
+        switch (mConfig.getColorMode()) {
+            case white:
+                viewHolder.container.setBackgroundColor(ContextCompat.getColor(mContext,
+                        R.color.white));
+                viewHolder.children.setBackgroundColor(ContextCompat.getColor(mContext,
+                        R.color.white));
+                viewHolder.sectionTitle.setTextColor(ContextCompat.getColor(mContext,
+                        R.color.black));
+                break;
+            case black:
+                viewHolder.container.setBackgroundColor(ContextCompat.getColor(mContext,
+                        R.color.black));
+                viewHolder.children.setBackgroundColor(ContextCompat.getColor(mContext,
+                        R.color.black));
+                viewHolder.sectionTitle.setTextColor(ContextCompat.getColor(mContext,
+                        R.color.white));
+                break;
+            case beige:
+                viewHolder.container.setBackgroundColor(ContextCompat.getColor(mContext,
+                        R.color.beige));
+                viewHolder.children.setBackgroundColor(ContextCompat.getColor(mContext,
+                        R.color.beige));
+                viewHolder.sectionTitle.setTextColor(ContextCompat.getColor(mContext,
+                        R.color.text_color));
+                break;
+            default:
+                break;
         }
+
         if (tocLinkWrapper.getTocLink().href.equals(selectedHref)) {
             viewHolder.sectionTitle.setTextColor(ContextCompat.getColor(mContext, mConfig.getThemeColor()));
         }
@@ -150,12 +177,5 @@ public class TOCAdapter extends MultiLevelExpIndListAdapter {
                 }
             });
         }
-    }
-
-    private static int getPaddingPixels(Context context, int dpValue) {
-        // Get the screen's density scale
-        final float scale = context.getResources().getDisplayMetrics().density;
-        // Convert the dps to pixels, based on density scale
-        return (int) (dpValue * scale + 0.5f);
     }
 }

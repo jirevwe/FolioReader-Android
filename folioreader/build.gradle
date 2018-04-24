@@ -10,6 +10,9 @@ ext {
     libraryName = 'FolioReader'
     artifact = 'folioreader'
 
+    ANDROID_LIB_VERSION = '27.1.1'
+    R2_STREAMER_VERSION = '0.1.2'
+
     libraryDescription = 'An epub reader for Android'
 
     siteUrl = 'https://github.com/FolioReader/FolioReader-Android'
@@ -28,14 +31,14 @@ ext {
 
 android {
     useLibrary 'org.apache.http.legacy'
-    compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 27
+    buildToolsVersion "27.0.3"
 
     defaultConfig {
         versionCode 1
         versionName "1.0"
-        minSdkVersion 14
-        targetSdkVersion 26
+        minSdkVersion 16
+        targetSdkVersion 27
     }
 
     sourceSets {
@@ -50,8 +53,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     packagingOptions {
@@ -79,26 +82,21 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile project(':webViewMarker')
-
-    final ANDROID_LIB_VERSION = '26.0.2'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation project(':webViewMarker')
 
     //noinspection GradleDependency
-    compile "com.android.support:appcompat-v7:$ANDROID_LIB_VERSION"
-    compile "com.android.support:recyclerview-v7:$ANDROID_LIB_VERSION"
-    compile "com.android.support:support-v4:$ANDROID_LIB_VERSION"
-    compile "com.android.support:design:$ANDROID_LIB_VERSION"
+    implementation 'com.daimajia.swipelayout:library:1.2.0@aar'
+    implementation "com.android.support:design:$project.ANDROID_LIB_VERSION"
+    implementation "com.android.support:support-v4:$project.ANDROID_LIB_VERSION"
+    implementation "com.android.support:appcompat-v7:$project.ANDROID_LIB_VERSION"
+    implementation "com.android.support:recyclerview-v7:$project.ANDROID_LIB_VERSION"
 
-    compile 'com.daimajia.swipelayout:library:1.2.0@aar'
     // r2-streamer
-    final R2_STREAMER_VERSION = '0.1.2'
-
-    compile "org.readium:r2-fetcher:$R2_STREAMER_VERSION"
-    compile "org.readium:r2-parser:$R2_STREAMER_VERSION"
-    compile "org.readium:r2-server:$R2_STREAMER_VERSION"
-
-    compile 'org.greenrobot:eventbus:3.1.1'
+    implementation "org.readium:r2-parser:$project.R2_STREAMER_VERSION"
+    implementation "org.readium:r2-server:$project.R2_STREAMER_VERSION"
+    implementation "org.readium:r2-fetcher:$project.R2_STREAMER_VERSION"
+    implementation 'org.greenrobot:eventbus:3.1.1'
 }
 
 apply from: '../folioreader/bintray/installv1.gradle'

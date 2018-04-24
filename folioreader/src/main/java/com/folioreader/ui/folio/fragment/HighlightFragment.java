@@ -67,10 +67,14 @@ public class HighlightFragment extends Fragment implements HighlightAdapter.High
         Config config = AppUtil.getSavedConfig(getActivity());
         mBookId = getArguments().getString(FolioReader.INTENT_BOOK_ID);
 
-        if (config.isNightMode()) {
+        if (config.getColorMode() == Config.ColorMode.black) {
             mRootView.findViewById(R.id.rv_highlights).
                     setBackgroundColor(ContextCompat.getColor(getActivity(),
                             R.color.black));
+        } else if (config.getColorMode() == Config.ColorMode.beige) {
+            mRootView.findViewById(R.id.rv_highlights).
+                    setBackgroundColor(ContextCompat.getColor(getActivity(),
+                            R.color.beige));
         }
         highlightsView.setLayoutManager(new LinearLayoutManager(getActivity()));
         highlightsView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
@@ -90,7 +94,7 @@ public class HighlightFragment extends Fragment implements HighlightAdapter.High
 
     @Override
     public void deleteHighlight(int id) {
-        if(HighLightTable.deleteHighlight(id)) {
+        if (HighLightTable.deleteHighlight(id)) {
             EventBus.getDefault().post(new UpdateHighlightEvent());
         }
     }
@@ -104,27 +108,24 @@ public class HighlightFragment extends Fragment implements HighlightAdapter.High
         String noteText = highlightImpl.getNote();
         ((EditText) dialog.findViewById(R.id.edit_note)).setText(noteText);
 
-        dialog.findViewById(R.id.btn_save_note).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        dialog.findViewById(R.id.btn_save_note).setOnClickListener(v -> {
 
-                String note =
-                        ((EditText) dialog.findViewById(R.id.edit_note)).getText().toString();
-                if (!TextUtils.isEmpty(note)) {
-                    highlightImpl.setNote(note);
-                    if (HighLightTable.updateHighlight(highlightImpl)) {
-                        HighlightUtil.sendHighlightBroadcastEvent(
-                                HighlightFragment.this.getActivity().getApplicationContext(),
-                                highlightImpl,
-                                HighLight.HighLightAction.MODIFY);
-                        adapter.editNote(note, position);
-                    }
-                    dialog.dismiss();
-                } else {
-                    Toast.makeText(getActivity(),
-                            getString(R.string.please_enter_note),
-                            Toast.LENGTH_SHORT).show();
+            String note =
+                    ((EditText) dialog.findViewById(R.id.edit_note)).getText().toString();
+            if (!TextUtils.isEmpty(note)) {
+                highlightImpl.setNote(note);
+                if (HighLightTable.updateHighlight(highlightImpl)) {
+                    HighlightUtil.sendHighlightBroadcastEvent(
+                            HighlightFragment.this.getActivity().getApplicationContext(),
+                            highlightImpl,
+                            HighLight.HighLightAction.MODIFY);
+                    adapter.editNote(note, position);
                 }
+                dialog.dismiss();
+            } else {
+                Toast.makeText(getActivity(),
+                        getString(R.string.please_enter_note),
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }

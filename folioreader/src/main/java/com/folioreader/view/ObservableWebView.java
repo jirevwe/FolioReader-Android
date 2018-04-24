@@ -18,20 +18,6 @@ public class ObservableWebView extends WebView {
 
     private float mDownPosX = 0;
     private float mDownPosY = 0;
-
-    public interface ScrollListener {
-        void onScrollChange(int percent);
-    }
-
-    public interface SeekBarListener {
-        void fadeInSeekBarIfInvisible();
-    }
-
-    public interface ToolBarListener {
-        void hideOrshowToolBar();
-        void hideToolBarIfVisible();
-    }
-
     private ScrollListener mScrollListener;
     private SeekBarListener mSeekBarListener;
     private ToolBarListener mToolBarListener;
@@ -49,8 +35,7 @@ public class ObservableWebView extends WebView {
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public ObservableWebView(Context context, AttributeSet attrs,
-                             int defStyleAttr, int defStyleRes) {
+    public ObservableWebView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
@@ -78,10 +63,8 @@ public class ObservableWebView extends WebView {
                 if (mSeekBarListener != null) mSeekBarListener.fadeInSeekBarIfInvisible();
                 break;
             case MotionEvent.ACTION_UP:
-                if (mToolBarListener != null &&
-                        (Math.abs(event.getX() - mDownPosX) < MOVE_THRESHOLD_DP
-                                || Math.abs(event.getY() - mDownPosY) < MOVE_THRESHOLD_DP)) {
-                    mToolBarListener.hideOrshowToolBar();
+                if (mToolBarListener != null && (Math.abs(event.getX() - mDownPosX) < MOVE_THRESHOLD_DP || Math.abs(event.getY() - mDownPosY) < MOVE_THRESHOLD_DP)) {
+                    mToolBarListener.hideOrShowToolBar();
                 }
                 break;
         }
@@ -120,19 +103,7 @@ public class ObservableWebView extends WebView {
             }
 
             @Override
-            public void setTitle(int resId) {
-            }
-
-            @Override
             public void setSubtitle(CharSequence subtitle) {
-            }
-
-            @Override
-            public void setSubtitle(int resId) {
-            }
-
-            @Override
-            public void setCustomView(View view) {
             }
 
             @Override
@@ -154,8 +125,16 @@ public class ObservableWebView extends WebView {
             }
 
             @Override
+            public void setTitle(int resId) {
+            }
+
+            @Override
             public CharSequence getSubtitle() {
                 return null;
+            }
+
+            @Override
+            public void setSubtitle(int resId) {
             }
 
             @Override
@@ -164,9 +143,27 @@ public class ObservableWebView extends WebView {
             }
 
             @Override
+            public void setCustomView(View view) {
+            }
+
+            @Override
             public MenuInflater getMenuInflater() {
                 return null;
             }
         };
+    }
+
+    public interface ScrollListener {
+        void onScrollChange(int percent);
+    }
+
+    public interface SeekBarListener {
+        void fadeInSeekBarIfInvisible();
+    }
+
+    public interface ToolBarListener {
+        void hideOrShowToolBar();
+
+        void hideToolBarIfVisible();
     }
 }

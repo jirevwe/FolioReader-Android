@@ -26,14 +26,6 @@ public class FolioReader {
     private Context context;
 
     private OnHighlightListener onHighlightListener;
-
-    public FolioReader(Context context) {
-        this.context = context;
-        new DbAdapter(context);
-        LocalBroadcastManager.getInstance(context).registerReceiver(highlightReceiver,
-                new IntentFilter(HighlightImpl.BROADCAST_EVENT));
-    }
-
     private BroadcastReceiver highlightReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -45,6 +37,12 @@ public class FolioReader {
             }
         }
     };
+
+    public FolioReader(Context context) {
+        this.context = context;
+        new DbAdapter(context);
+        LocalBroadcastManager.getInstance(context).registerReceiver(highlightReceiver, new IntentFilter(HighlightImpl.BROADCAST_EVENT));
+    }
 
     public void openBook(String assetOrSdcardPath) {
         Intent intent = getIntentFromUrl(assetOrSdcardPath, 0);

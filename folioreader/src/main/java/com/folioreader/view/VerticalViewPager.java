@@ -54,59 +54,63 @@ import java.util.Comparator;
  * Just a copy of the original ViewPager modified to support vertical Scrolling
  */
 public class VerticalViewPager extends ViewGroup {
+    /**
+     * Indicates that the pager is in an idle, settled state. The current page
+     * is fully in view and no animation is in progress.
+     */
+    public static final int SCROLL_STATE_IDLE = 0;
+    /**
+     * Indicates that the pager is currently being dragged by the user.
+     */
+    public static final int SCROLL_STATE_DRAGGING = 1;
+    /**
+     * Indicates that the pager is in the process of settling to a final position.
+     */
+    public static final int SCROLL_STATE_SETTLING = 2;
     private static final String TAG = "ViewPager";
     private static final boolean DEBUG = false;
-
     private static final boolean USE_CACHE = false;
-
     private static final int DEFAULT_OFFSCREEN_PAGES = 1;
     private static final int MAX_SETTLE_DURATION = 600; // ms
     private static final int MIN_DISTANCE_FOR_FLING = 25; // dips
-
     private static final int DEFAULT_GUTTER_SIZE = 16; // dips
-
     private static final int MIN_FLING_VELOCITY = 400; // dips
-
     private static final int[] LAYOUT_ATTRS = new int[]{
             android.R.attr.layout_gravity
     };
-
-
-
-    /**
-     * Used to track what the expected number of items in the adapter should be.
-     * If the app changes this when we don't expect it, we'll throw a big obnoxious exception.
-     */
-    private int mExpectedAdapterCount;
-
-    static class ItemInfo {
-        Object object;
-        int position;
-        boolean scrolling;
-        float heightFactor;
-
-        float offset;
-    }
-
     private static final Comparator<ItemInfo> COMPARATOR = new Comparator<ItemInfo>() {
         @Override
         public int compare(ItemInfo lhs, ItemInfo rhs) {
             return lhs.position - rhs.position;
         }
     };
-
     private static final Interpolator sInterpolator = new Interpolator() {
         public float getInterpolation(float t) {
             t -= 1.0f;
             return t * t * t * t * t + 1.0f;
         }
     };
-
+    /**
+     * Sentinel value for no current active pointer.
+     * Used by {@link #mActivePointerId}.
+     */
+    private static final int INVALID_POINTER = -1;
+    // If the pager is at least this close to its final position, complete the scroll
+    // on touch down and let the user interact with the content inside instead of
+    // "catching" the flinging pager.
+    private static final int CLOSE_ENOUGH = 2; // dp
+    private static final int DRAW_ORDER_DEFAULT = 0;
+    private static final int DRAW_ORDER_FORWARD = 1;
+    private static final int DRAW_ORDER_REVERSE = 2;
+    private static final ViewPositionComparator sPositionComparator = new ViewPositionComparator();
     private final ArrayList<ItemInfo> mItems = new ArrayList<ItemInfo>();
     private final ItemInfo mTempItem = new ItemInfo();
-
     private final Rect mTempRect = new Rect();
-
+    /**
+     * Used to track what the expected number of items in the adapter should be.
+     * If the app changes this when we don't expect it, we'll throw a big obnoxious exception.
+     */
+    private int mExpectedAdapterCount;
     private PagerAdapter mAdapter;
     private int mCurItem;   // Index of currently displayed page.
     private int mRestoredCurItem = -1;
@@ -114,27 +118,21 @@ public class VerticalViewPager extends ViewGroup {
     private ClassLoader mRestoredClassLoader = null;
     private Scroller mScroller;
     private PagerObserver mObserver;
-
     private int mPageMargin;
     private Drawable mMarginDrawable;
     private int mLeftPageBounds;
     private int mRightPageBounds;
-
     // Offsets of the first and last items, if known.
     // Set during population, used to determine if we are at the beginning
     // or end of the pager data set during touch scrolling.
     private float mFirstOffset = -Float.MAX_VALUE;
     private float mLastOffset = Float.MAX_VALUE;
-
     private int mChildWidthMeasureSpec;
     private int mChildHeightMeasureSpec;
     private boolean mInLayout;
-
     private boolean mScrollingCacheEnabled;
-
     private boolean mPopulatePending;
     private int mOffscreenPageLimit = DEFAULT_OFFSCREEN_PAGES;
-
     private boolean mIsBeingDragged;
     private boolean mIsUnableToDrag;
     private boolean mIgnoreGutter;
@@ -154,12 +152,6 @@ public class VerticalViewPager extends ViewGroup {
      */
     private int mActivePointerId = INVALID_POINTER;
     /**
-     * Sentinel value for no current active pointer.
-     * Used by {@link #mActivePointerId}.
-     */
-    private static final int INVALID_POINTER = -1;
-
-    /**
      * Determines speed during touch scrolling
      */
     private VelocityTracker mVelocityTracker;
@@ -167,51 +159,22 @@ public class VerticalViewPager extends ViewGroup {
     private int mMaximumVelocity;
     private int mFlingDistance;
     private int mCloseEnough;
-
-    // If the pager is at least this close to its final position, complete the scroll
-    // on touch down and let the user interact with the content inside instead of
-    // "catching" the flinging pager.
-    private static final int CLOSE_ENOUGH = 2; // dp
-
     private boolean mFakeDragging;
     private long mFakeDragBeginTime;
-
     private EdgeEffectCompat mTopEdge;
     private EdgeEffectCompat mBottomEdge;
     private boolean mFirstLayout = true;
     private boolean mNeedCalculatePageOffsets = false;
     private boolean mCalledSuper;
     private int mDecorChildCount;
-
-    private ViewPager.OnPageChangeListener mOnPageChangeListener;
-    private ViewPager.OnPageChangeListener mInternalPageChangeListener;
+    private OnPageChangeListener mOnPageChangeListener;
+    private OnPageChangeListener mInternalPageChangeListener;
     private OnAdapterChangeListener mAdapterChangeListener;
-    private ViewPager.PageTransformer mPageTransformer;
+    private PageTransformer mPageTransformer;
     private Method mSetChildrenDrawingOrderEnabled;
-
-    private static final int DRAW_ORDER_DEFAULT = 0;
-    private static final int DRAW_ORDER_FORWARD = 1;
-    private static final int DRAW_ORDER_REVERSE = 2;
     private int mDrawingOrder;
     private ArrayList<View> mDrawingOrderedChildren;
-    private static final ViewPositionComparator sPositionComparator = new ViewPositionComparator();
-
-    /**
-     * Indicates that the pager is in an idle, settled state. The current page
-     * is fully in view and no animation is in progress.
-     */
-    public static final int SCROLL_STATE_IDLE = 0;
-
-    /**
-     * Indicates that the pager is currently being dragged by the user.
-     */
-    public static final int SCROLL_STATE_DRAGGING = 1;
-
-    /**
-     * Indicates that the pager is in the process of settling to a final position.
-     */
-    public static final int SCROLL_STATE_SETTLING = 2;
-
+    private int mScrollState = SCROLL_STATE_IDLE;
     private final Runnable mEndScrollRunnable = new Runnable() {
         public void run() {
             setScrollState(SCROLL_STATE_IDLE);
@@ -219,29 +182,13 @@ public class VerticalViewPager extends ViewGroup {
         }
     };
 
-    private int mScrollState = SCROLL_STATE_IDLE;
-
-    // private ScrollerCustomDuration mScrollerCustomDuration = null;
-
-    /**
-     * Used internally to monitor when adapters are switched.
-     */
-    interface OnAdapterChangeListener {
-        public void onAdapterChanged(PagerAdapter oldAdapter, PagerAdapter newAdapter);
-    }
-
-    /**
-     * Used internally to tag special types of child views that should be added as
-     * pager decorations by default.
-     */
-    interface Decor {
-    }
-
     public VerticalViewPager(Context context) {
         super(context);
         initViewPager();
         //postInitViewPager();
     }
+
+    // private ScrollerCustomDuration mScrollerCustomDuration = null;
 
     public VerticalViewPager(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -278,25 +225,6 @@ public class VerticalViewPager extends ViewGroup {
         //postInitViewPager();
     }
 
-
-   /* private void postInitViewPager() {
-        try {
-            Field scroller = ViewPager.class.getDeclaredField("mScroller");
-            scroller.setAccessible(true);
-            Field interpolator = ViewPager.class.getDeclaredField("sInterpolator");
-            interpolator.setAccessible(true);
-
-            mScrollerCustomDuration = new ScrollerCustomDuration(getContext(),
-                    (Interpolator) interpolator.get(null));
-            scroller.set(this, mScrollerCustomDuration);
-        } catch (Exception e) {
-        }
-    }
-
-    public void setScrollDurationFactor(double scrollFactor) {
-        mScrollerCustomDuration.setScrollDurationFactor(scrollFactor);
-    }*/
-
     @Override
     protected void onDetachedFromWindow() {
         removeCallbacks(mEndScrollRunnable);
@@ -316,6 +244,45 @@ public class VerticalViewPager extends ViewGroup {
         if (mOnPageChangeListener != null) {
             mOnPageChangeListener.onPageScrollStateChanged(newState);
         }
+    }
+
+    private void removeNonDecorViews() {
+        for (int i = 0; i < getChildCount(); i++) {
+            final View child = getChildAt(i);
+            final LayoutParams lp = (LayoutParams) child.getLayoutParams();
+            if (!lp.isDecor) {
+                removeViewAt(i);
+                i--;
+            }
+        }
+    }
+
+
+   /* private void postInitViewPager() {
+        try {
+            Field scroller = ViewPager.class.getDeclaredField("mScroller");
+            scroller.setAccessible(true);
+            Field interpolator = ViewPager.class.getDeclaredField("sInterpolator");
+            interpolator.setAccessible(true);
+
+            mScrollerCustomDuration = new ScrollerCustomDuration(getContext(),
+                    (Interpolator) interpolator.get(null));
+            scroller.set(this, mScrollerCustomDuration);
+        } catch (Exception e) {
+        }
+    }
+
+    public void setScrollDurationFactor(double scrollFactor) {
+        mScrollerCustomDuration.setScrollDurationFactor(scrollFactor);
+    }*/
+
+    /**
+     * Retrieve the current adapter supplying pages.
+     *
+     * @return The currently registered PagerAdapter
+     */
+    public PagerAdapter getAdapter() {
+        return mAdapter;
     }
 
     /**
@@ -369,49 +336,12 @@ public class VerticalViewPager extends ViewGroup {
         }
     }
 
-    private void removeNonDecorViews() {
-        for (int i = 0; i < getChildCount(); i++) {
-            final View child = getChildAt(i);
-            final LayoutParams lp = (LayoutParams) child.getLayoutParams();
-            if (!lp.isDecor) {
-                removeViewAt(i);
-                i--;
-            }
-        }
-    }
-
-    /**
-     * Retrieve the current adapter supplying pages.
-     *
-     * @return The currently registered PagerAdapter
-     */
-    public PagerAdapter getAdapter() {
-        return mAdapter;
-    }
-
     void setOnAdapterChangeListener(OnAdapterChangeListener listener) {
         mAdapterChangeListener = listener;
     }
 
-//    private int getClientWidth() {
-//        return getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
-//    }
-
     private int getClientHeight() {
         return getMeasuredHeight() - getPaddingTop() - getPaddingBottom();
-    }
-
-
-    /**
-     * Set the currently selected page. If the ViewPager has already been through its first
-     * layout with its current adapter there will be a smooth animated transition between
-     * the current item and the specified item.
-     *
-     * @param item Item index to select
-     */
-    public void setCurrentItem(int item) {
-        mPopulatePending = false;
-        setCurrentItemInternal(item, !mFirstLayout, false);
     }
 
     /**
@@ -427,6 +357,22 @@ public class VerticalViewPager extends ViewGroup {
 
     public int getCurrentItem() {
         return mCurItem;
+    }
+
+//    private int getClientWidth() {
+//        return getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
+//    }
+
+    /**
+     * Set the currently selected page. If the ViewPager has already been through its first
+     * layout with its current adapter there will be a smooth animated transition between
+     * the current item and the specified item.
+     *
+     * @param item Item index to select
+     */
+    public void setCurrentItem(int item) {
+        mPopulatePending = false;
+        setCurrentItemInternal(item, !mFirstLayout, false);
     }
 
     void setCurrentItemInternal(int item, boolean smoothScroll, boolean always) {
@@ -508,7 +454,7 @@ public class VerticalViewPager extends ViewGroup {
 
     /**
      * Set a listener that will be invoked whenever the page changes or is incrementally
-     * scrolled. See {@link ViewPager.OnPageChangeListener}.
+     * scrolled. See {@link OnPageChangeListener}.
      *
      * @param listener Listener to set
      */
@@ -517,7 +463,7 @@ public class VerticalViewPager extends ViewGroup {
     }
 
     /**
-     * Set a {@link ViewPager.PageTransformer} that will be called for each attached page whenever
+     * Set a {@link PageTransformer} that will be called for each attached page whenever
      * the scroll position is changed. This allows the application to apply custom property
      * transformations to each page, overriding the default sliding look and feel.
      * <p/>
@@ -626,6 +572,15 @@ public class VerticalViewPager extends ViewGroup {
     }
 
     /**
+     * Return the margin between pages.
+     *
+     * @return The size of the margin in pixels
+     */
+    public int getPageMargin() {
+        return mPageMargin;
+    }
+
+    /**
      * Set the margin between pages.
      *
      * @param marginPixels Distance between adjacent pages in pixels
@@ -641,15 +596,6 @@ public class VerticalViewPager extends ViewGroup {
         recomputeScrollPosition(height, height, marginPixels, oldMargin);
 
         requestLayout();
-    }
-
-    /**
-     * Return the margin between pages.
-     *
-     * @return The size of the margin in pixels
-     */
-    public int getPageMargin() {
-        return mPageMargin;
     }
 
     /**
@@ -1062,7 +1008,7 @@ public class VerticalViewPager extends ViewGroup {
                 ItemInfo ii = null;
                 float offset = oldCurInfo.offset + oldCurInfo.heightFactor + marginOffset;
                 for (int pos = oldCurPosition + 1;
-                        pos <= curItem.position && itemIndex < mItems.size(); pos++) {
+                     pos <= curItem.position && itemIndex < mItems.size(); pos++) {
                     ii = mItems.get(itemIndex);
                     while (pos > ii.position && itemIndex < mItems.size() - 1) {
                         itemIndex++;
@@ -1082,8 +1028,8 @@ public class VerticalViewPager extends ViewGroup {
                 ItemInfo ii = null;
                 float offset = oldCurInfo.offset;
                 for (int pos = oldCurPosition - 1;
-                        pos >= curItem.position && itemIndex >= 0;
-                        pos--) {
+                     pos >= curItem.position && itemIndex >= 0;
+                     pos--) {
                     ii = mItems.get(itemIndex);
                     while (pos < ii.position && itemIndex > 0) {
                         itemIndex--;
@@ -1134,59 +1080,6 @@ public class VerticalViewPager extends ViewGroup {
         }
 
         mNeedCalculatePageOffsets = false;
-    }
-
-    /**
-     * This is the persistent state that is saved by ViewPager.  Only needed
-     * if you are creating a sublass of ViewPager that must save its own
-     * state, in which case it should implement a subclass of this which
-     * contains that state.
-     */
-    public static class SavedState extends BaseSavedState {
-        int position;
-        Parcelable adapterState;
-        ClassLoader loader;
-
-        public SavedState(Parcelable superState) {
-            super(superState);
-        }
-
-        @Override
-        public void writeToParcel(Parcel out, int flags) {
-            super.writeToParcel(out, flags);
-            out.writeInt(position);
-            out.writeParcelable(adapterState, flags);
-        }
-
-        @Override
-        public String toString() {
-            return "FragmentPager.SavedState{"
-                    + Integer.toHexString(System.identityHashCode(this))
-                    + " position=" + position + "}";
-        }
-
-        public static final Creator<SavedState> CREATOR =
-                ParcelableCompat.newCreator(new ParcelableCompatCreatorCallbacks<SavedState>() {
-                    @Override
-                    public SavedState createFromParcel(Parcel in, ClassLoader loader) {
-                        return new SavedState(in, loader);
-                    }
-
-                    @Override
-                    public SavedState[] newArray(int size) {
-                        return new SavedState[size];
-                    }
-                });
-
-        SavedState(Parcel in, ClassLoader loader) {
-            super(in);
-            if (loader == null) {
-                loader = getClass().getClassLoader();
-            }
-            position = in.readInt();
-            adapterState = in.readParcelable(loader);
-            this.loader = loader;
-        }
     }
 
     @Override
@@ -1754,9 +1647,9 @@ public class VerticalViewPager extends ViewGroup {
                  */
 
                 /*
-                * Locally do absolute value. mLastMotionY is set to the y value
-                * of the down event.
-                */
+                 * Locally do absolute value. mLastMotionY is set to the y value
+                 * of the down event.
+                 */
                 final int activePointerId = mActivePointerId;
                 if (activePointerId == INVALID_POINTER) {
                     // If we don't have a valid id, the touch down wasn't on content.
@@ -2450,8 +2343,8 @@ public class VerticalViewPager extends ViewGroup {
         } else if (currentFocused != null) {
             boolean isChild = false;
             for (ViewParent parent = currentFocused.getParent();
-                    parent instanceof ViewGroup;
-                    parent = parent.getParent()) {
+                 parent instanceof ViewGroup;
+                 parent = parent.getParent()) {
                 if (parent == this) {
                     isChild = true;
                     break;
@@ -2462,9 +2355,9 @@ public class VerticalViewPager extends ViewGroup {
                 final StringBuilder sb = new StringBuilder();
                 sb.append(currentFocused.getClass().getSimpleName());
                 for (ViewParent parent =
-                        currentFocused.getParent();
-                        parent instanceof ViewGroup;
-                        parent = parent.getParent()) {
+                     currentFocused.getParent();
+                     parent instanceof ViewGroup;
+                     parent = parent.getParent()) {
                     sb.append(" => ").append(parent.getClass().getSimpleName());
                 }
                 Log.e(TAG, "arrowScroll tried to find focus based on non-child " +
@@ -2692,6 +2585,145 @@ public class VerticalViewPager extends ViewGroup {
         return new LayoutParams(getContext(), attrs);
     }
 
+    /**
+     * Used internally to monitor when adapters are switched.
+     */
+    interface OnAdapterChangeListener {
+        public void onAdapterChanged(PagerAdapter oldAdapter, PagerAdapter newAdapter);
+    }
+
+    /**
+     * Used internally to tag special types of child views that should be added as
+     * pager decorations by default.
+     */
+    interface Decor {
+    }
+
+    static class ItemInfo {
+        Object object;
+        int position;
+        boolean scrolling;
+        float heightFactor;
+
+        float offset;
+    }
+
+    /**
+     * This is the persistent state that is saved by ViewPager.  Only needed
+     * if you are creating a sublass of ViewPager that must save its own
+     * state, in which case it should implement a subclass of this which
+     * contains that state.
+     */
+    public static class SavedState extends BaseSavedState {
+        public static final Creator<SavedState> CREATOR =
+                ParcelableCompat.newCreator(new ParcelableCompatCreatorCallbacks<SavedState>() {
+                    @Override
+                    public SavedState createFromParcel(Parcel in, ClassLoader loader) {
+                        return new SavedState(in, loader);
+                    }
+
+                    @Override
+                    public SavedState[] newArray(int size) {
+                        return new SavedState[size];
+                    }
+                });
+        int position;
+        Parcelable adapterState;
+        ClassLoader loader;
+
+        public SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        SavedState(Parcel in, ClassLoader loader) {
+            super(in);
+            if (loader == null) {
+                loader = getClass().getClassLoader();
+            }
+            position = in.readInt();
+            adapterState = in.readParcelable(loader);
+            this.loader = loader;
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeInt(position);
+            out.writeParcelable(adapterState, flags);
+        }
+
+        @Override
+        public String toString() {
+            return "FragmentPager.SavedState{"
+                    + Integer.toHexString(System.identityHashCode(this))
+                    + " position=" + position + "}";
+        }
+    }
+
+    /**
+     * Layout parameters that should be supplied for views added to a
+     * ViewPager.
+     */
+    public static class LayoutParams extends ViewGroup.LayoutParams {
+        /**
+         * true if this view is a decoration on the pager itself and not
+         * a view supplied by the adapter.
+         */
+        public boolean isDecor;
+
+        /**
+         * Gravity setting for use on decor views only:
+         * Where to position the view page within the overall ViewPager
+         * container; constants are defined in {@link Gravity}.
+         */
+        public int gravity;
+
+        /**
+         * Width as a 0-1 multiplier of the measured pager width
+         */
+        float heightFactor = 0.f;
+
+        /**
+         * true if this view was added during layout and needs to be measured
+         * before being positioned.
+         */
+        boolean needsMeasure;
+
+        /**
+         * Adapter position this view is for if !isDecor
+         */
+        int position;
+
+        /**
+         * Current child index within the ViewPager that this view occupies
+         */
+        int childIndex;
+
+        public LayoutParams() {
+            super(FILL_PARENT, FILL_PARENT);
+        }
+
+        public LayoutParams(Context context, AttributeSet attrs) {
+            super(context, attrs);
+
+            final TypedArray a = context.obtainStyledAttributes(attrs, LAYOUT_ATTRS);
+            gravity = a.getInteger(0, Gravity.TOP);
+            a.recycle();
+        }
+    }
+
+    static class ViewPositionComparator implements Comparator<View> {
+        @Override
+        public int compare(View lhs, View rhs) {
+            final LayoutParams llp = (LayoutParams) lhs.getLayoutParams();
+            final LayoutParams rlp = (LayoutParams) rhs.getLayoutParams();
+            if (llp.isDecor != rlp.isDecor) {
+                return llp.isDecor ? 1 : -1;
+            }
+            return llp.position - rlp.position;
+        }
+    }
+
     class MyAccessibilityDelegate extends AccessibilityDelegateCompat {
 
         @Override
@@ -2759,70 +2791,6 @@ public class VerticalViewPager extends ViewGroup {
         @Override
         public void onInvalidated() {
             dataSetChanged();
-        }
-    }
-
-    /**
-     * Layout parameters that should be supplied for views added to a
-     * ViewPager.
-     */
-    public static class LayoutParams extends ViewGroup.LayoutParams {
-        /**
-         * true if this view is a decoration on the pager itself and not
-         * a view supplied by the adapter.
-         */
-        public boolean isDecor;
-
-        /**
-         * Gravity setting for use on decor views only:
-         * Where to position the view page within the overall ViewPager
-         * container; constants are defined in {@link Gravity}.
-         */
-        public int gravity;
-
-        /**
-         * Width as a 0-1 multiplier of the measured pager width
-         */
-        float heightFactor = 0.f;
-
-        /**
-         * true if this view was added during layout and needs to be measured
-         * before being positioned.
-         */
-        boolean needsMeasure;
-
-        /**
-         * Adapter position this view is for if !isDecor
-         */
-        int position;
-
-        /**
-         * Current child index within the ViewPager that this view occupies
-         */
-        int childIndex;
-
-        public LayoutParams() {
-            super(FILL_PARENT, FILL_PARENT);
-        }
-
-        public LayoutParams(Context context, AttributeSet attrs) {
-            super(context, attrs);
-
-            final TypedArray a = context.obtainStyledAttributes(attrs, LAYOUT_ATTRS);
-            gravity = a.getInteger(0, Gravity.TOP);
-            a.recycle();
-        }
-    }
-
-    static class ViewPositionComparator implements Comparator<View> {
-        @Override
-        public int compare(View lhs, View rhs) {
-            final LayoutParams llp = (LayoutParams) lhs.getLayoutParams();
-            final LayoutParams rlp = (LayoutParams) rhs.getLayoutParams();
-            if (llp.isDecor != rlp.isDecor) {
-                return llp.isDecor ? 1 : -1;
-            }
-            return llp.position - rlp.position;
         }
     }
 

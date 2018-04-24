@@ -23,6 +23,8 @@ public class HighLightTable {
 
     public static final String ID = "_id";
     public static final String COL_BOOK_ID = "bookId";
+    public static final String SQL_DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
+    public static final String TAG = HighLightTable.class.getSimpleName();
     private static final String COL_CONTENT = "content";
     private static final String COL_DATE = "date";
     private static final String COL_TYPE = "type";
@@ -31,7 +33,6 @@ public class HighLightTable {
     private static final String COL_RANGY = "rangy";
     private static final String COL_NOTE = "note";
     private static final String COL_UUID = "uuid";
-
     public static final String SQL_CREATE = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " ( " + ID
             + " INTEGER PRIMARY KEY AUTOINCREMENT" + ","
             + COL_BOOK_ID + " TEXT" + ","
@@ -43,10 +44,6 @@ public class HighLightTable {
             + COL_RANGY + " TEXT" + ","
             + COL_UUID + " TEXT" + ","
             + COL_NOTE + " TEXT" + ")";
-
-    public static final String SQL_DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
-
-    public static final String TAG = HighLightTable.class.getSimpleName();
 
     public static ContentValues getHighlightContentValues(HighLight highLight) {
         ContentValues contentValues = new ContentValues();

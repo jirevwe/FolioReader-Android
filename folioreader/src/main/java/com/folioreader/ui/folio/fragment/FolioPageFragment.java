@@ -80,9 +80,8 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
     public static final String KEY_FRAGMENT_FOLIO_POSITION = "com.folioreader.ui.folio.fragment.FolioPageFragment.POSITION";
     public static final String KEY_FRAGMENT_FOLIO_BOOK_TITLE = "com.folioreader.ui.folio.fragment.FolioPageFragment.BOOK_TITLE";
     public static final String KEY_FRAGMENT_EPUB_FILE_NAME = "com.folioreader.ui.folio.fragment.FolioPageFragment.EPUB_FILE_NAME";
-    private static final String KEY_IS_SMIL_AVAILABLE = "com.folioreader.ui.folio.fragment.FolioPageFragment.IS_SMIL_AVAILABLE";
     public static final String TAG = FolioPageFragment.class.getSimpleName();
-
+    private static final String KEY_IS_SMIL_AVAILABLE = "com.folioreader.ui.folio.fragment.FolioPageFragment.IS_SMIL_AVAILABLE";
     private static final int ACTION_ID_COPY = 1001;
     private static final int ACTION_ID_SHARE = 1002;
     private static final int ACTION_ID_HIGHLIGHT = 1003;
@@ -104,29 +103,16 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
     private String mAnchorId;
     private String rangy = "";
     private String highlightId;
-
-    public interface FolioPageFragmentCallback {
-
-        void setPagerToPosition(String href);
-
-        void setLastWebViewPosition(int position);
-
-        void goToChapter(String href);
-    }
-
     private View mRootView;
-
     private VerticalSeekbar mScrollSeekbar;
     private ObservableWebView mWebview;
     private TextSelectionSupport mTextSelectionSupport;
     private TextView mPagesLeftTextView, mMinutesLeftTextView;
     private FolioPageFragmentCallback mActivityCallback;
-
     private int mScrollY;
     private int mTotalMinutes;
     private String mSelectedText;
     private Animation mFadeInAnimation, mFadeOutAnimation;
-
     private Link spineItem;
     private int mPosition = -1;
     private String mBookTitle;
@@ -134,9 +120,7 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
     private int mPos;
     private boolean mIsPageReloaded;
     private int mLastWebviewScrollpos;
-
     private String highlightStyle;
-
     private MediaController mediaController;
     private Config mConfig;
     private String mBookId;
@@ -153,8 +137,7 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         EventBus.getDefault().register(this);
         if ((savedInstanceState != null)
                 && savedInstanceState.containsKey(KEY_FRAGMENT_FOLIO_POSITION)
@@ -199,7 +182,6 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
 
         return mRootView;
     }
-
 
     private String getWebviewUrl() {
         return Constants.LOCALHOST + mBookTitle + "/" + spineItem.href;
@@ -297,7 +279,7 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
 
     /**
      * [EVENT BUS FUNCTION]
-     *
+     * <p>
      * Function triggered when highlight is deleted and page is needed to
      * be updated.
      *
@@ -305,8 +287,8 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
      */
     @SuppressWarnings("unused")
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void updateHighlight(UpdateHighlightEvent event){
-        if(isAdded()) {
+    public void updateHighlight(UpdateHighlightEvent event) {
+        if (isAdded()) {
             this.rangy = HighlightUtil.generateRangyString(getPageName());
             loadRangy(mWebview, this.rangy);
         }
@@ -488,7 +470,7 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
             // prevent favicon.ico to be loaded automatically
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-                if(url.toLowerCase().contains("/favicon.ico")) {
+                if (url.toLowerCase().contains("/favicon.ico")) {
                     try {
                         return new WebResourceResponse("image/png", null, null);
                     } catch (Exception e) {
@@ -502,7 +484,7 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
             @Override
             @SuppressLint("NewApi")
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                if(!request.isForMainFrame() && request.getUrl().getPath().endsWith("/favicon.ico")) {
+                if (!request.isForMainFrame() && request.getUrl().getPath().endsWith("/favicon.ico")) {
                     try {
                         return new WebResourceResponse("image/png", null, null);
                     } catch (Exception e) {
@@ -588,12 +570,7 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
             @Override
             public void selectionChanged(String text) {
                 mSelectedText = text;
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mWebview.loadUrl("javascript:alert(getRectForSelectedText())");
-                    }
-                });
+                getActivity().runOnUiThread(() -> mWebview.loadUrl("javascript:alert(getRectForSelectedText())"));
             }
 
             @Override
@@ -626,13 +603,15 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
     }
 
     private void updatePagesLeftTextBg() {
-
-        if (mConfig.isNightMode()) {
+        if (mConfig.getColorMode() == Config.ColorMode.black) {
             mRootView.findViewById(R.id.indicatorLayout)
-                    .setBackgroundColor(Color.parseColor("#131313"));
-        } else {
+                    .setBackgroundColor(getResources().getColor(R.color.dark_night));
+        } else if (mConfig.getColorMode() == Config.ColorMode.white) {
             mRootView.findViewById(R.id.indicatorLayout)
-                    .setBackgroundColor(Color.WHITE);
+                    .setBackgroundColor(getResources().getColor(R.color.white));
+        } else if (mConfig.getColorMode() == Config.ColorMode.beige) {
+            mRootView.findViewById(R.id.indicatorLayout)
+                    .setBackgroundColor(getResources().getColor(R.color.beige));
         }
     }
 
@@ -666,7 +645,7 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
 
             mMinutesLeftTextView.setText(minutesRemainingStr);
             mPagesLeftTextView.setText(pagesRemainingStr);
-        } catch (java.lang.ArithmeticException exp) {
+        } catch (ArithmeticException exp) {
             Log.d("divide error", exp.toString());
         }
     }
@@ -838,13 +817,10 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
         quickAction.addActionItem(new ActionItem(ACTION_ID_SHARE,
                 getResources().getDrawable(R.drawable.ic_action_share)));
         final ViewGroup finalRoot = root;
-        quickAction.setOnActionItemClickListener(new QuickAction.OnActionItemClickListener() {
-            @Override
-            public void onItemClick(QuickAction source, int pos, int actionId) {
-                quickAction.dismiss();
-                finalRoot.removeView(view);
-                onHighlightActionItemClicked(actionId, view, isCreated);
-            }
+        quickAction.setOnActionItemClickListener((source, pos, actionId) -> {
+            quickAction.dismiss();
+            finalRoot.removeView(view);
+            onHighlightActionItemClicked(actionId, view, isCreated);
         });
         quickAction.show(view, width, height);
     }
@@ -885,13 +861,10 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
         quickAction.addActionItem(new ActionItem(ACTION_ID_HIGHLIGHT_UNDERLINE,
                 getResources().getDrawable(R.drawable.ic_underline_marker)));
         final ViewGroup finalRoot = root;
-        quickAction.setOnActionItemClickListener(new QuickAction.OnActionItemClickListener() {
-            @Override
-            public void onItemClick(QuickAction source, int pos, int actionId) {
-                quickAction.dismiss();
-                finalRoot.removeView(view);
-                onHighlightColorsActionItemClicked(actionId, view, isCreated);
-            }
+        quickAction.setOnActionItemClickListener((source, pos, actionId) -> {
+            quickAction.dismiss();
+            finalRoot.removeView(view);
+            onHighlightColorsActionItemClicked(actionId, view, isCreated);
         });
         quickAction.show(view);
     }
@@ -949,12 +922,9 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
     }
 
     public void setWebViewPosition(final int position) {
-        mWebview.post(new Runnable() {
-            @Override
-            public void run() {
-                if (isAdded()) {
-                    mWebview.scrollTo(0, position);
-                }
+        mWebview.post(() -> {
+            if (isAdded()) {
+                mWebview.scrollTo(0, position);
             }
         });
     }
@@ -1009,5 +979,14 @@ public class FolioPageFragment extends Fragment implements HtmlTaskCallback, Med
 
     private void scrollToHighlightId() {
         mWebview.loadUrl(String.format(getString(R.string.goto_highlight), highlightId));
+    }
+
+    public interface FolioPageFragmentCallback {
+
+        void setPagerToPosition(String href);
+
+        void setLastWebViewPosition(int position);
+
+        void goToChapter(String href);
     }
 }

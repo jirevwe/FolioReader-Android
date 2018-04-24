@@ -23,10 +23,6 @@ public class TableOfContentsPresenter implements ManifestCallBack {
         this.tocMvpView = tocMvpView;
     }
 
-    public void getTOCContent(String url) {
-        new ManifestTask(this).execute(url);
-    }
-
     /**
      * [RECURSIVE]
      * <p>
@@ -58,6 +54,10 @@ public class TableOfContentsPresenter implements ManifestCallBack {
             tocLinkWrappers.add(new TOCLinkWrapper(tocLink, 0));
         }
         return tocLinkWrappers;
+    }
+
+    public void getTOCContent(String url) {
+        new ManifestTask(this).execute(url);
     }
 
     @Override

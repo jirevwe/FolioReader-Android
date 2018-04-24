@@ -28,8 +28,8 @@ public class Constants {
     public static final int WRITE_EXTERNAL_STORAGE_REQUEST = 102;
 
     public static String[] getWriteExternalStoragePerms() {
-        return new String[] {
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        return new String[]{
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
         };
     }
 }

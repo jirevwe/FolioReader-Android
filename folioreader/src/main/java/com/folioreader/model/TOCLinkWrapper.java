@@ -11,7 +11,7 @@ import java.util.List;
  * Created by Mahavir on 3/10/17.
  */
 
-public class TOCLinkWrapper implements MultiLevelExpIndListAdapter.ExpIndData{
+public class TOCLinkWrapper implements MultiLevelExpIndListAdapter.ExpIndData {
     private TOCLink tocLink;
     private int indentation;
     private ArrayList<TOCLinkWrapper> tocLinkWrappers;
@@ -22,7 +22,7 @@ public class TOCLinkWrapper implements MultiLevelExpIndListAdapter.ExpIndData{
         this.tocLink = tocLink;
         this.indentation = indentation;
         this.tocLinkWrappers = new ArrayList<>();
-        this.mIsGroup = (tocLink.getTocLinks()!=null && tocLink.getTocLinks().size()>0);
+        this.mIsGroup = (tocLink.getTocLinks() != null && tocLink.getTocLinks().size() > 0);
     }
 
     @Override
@@ -80,12 +80,12 @@ public class TOCLinkWrapper implements MultiLevelExpIndListAdapter.ExpIndData{
         mIsGroup = value;
     }
 
+    public int getGroupSize() {
+        return mGroupSize;
+    }
+
     @Override
     public void setGroupSize(int groupSize) {
         mGroupSize = groupSize;
-    }
-
-    public int getGroupSize() {
-        return mGroupSize;
     }
 }

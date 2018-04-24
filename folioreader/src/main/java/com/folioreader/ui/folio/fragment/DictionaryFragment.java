@@ -91,42 +91,24 @@ public class DictionaryFragment extends DialogFragment implements DictionaryCall
         wikiWebView.getSettings().setJavaScriptEnabled(true);
         wikiWebView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
 
-        dictionary.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadDictionary();
-            }
+        dictionary.setOnClickListener(v -> loadDictionary());
+
+        wikipedia.setOnClickListener(v -> loadWikipedia());
+
+        googleSearch.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+            intent.putExtra(SearchManager.QUERY, word);
+            startActivity(intent);
         });
 
-        wikipedia.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadWikipedia();
-            }
-        });
-
-        googleSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
-                intent.putExtra(SearchManager.QUERY, word);
-                startActivity(intent);
-            }
-        });
-
-        view.findViewById(R.id.btn_close).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dismiss();
-            }
-        });
+        view.findViewById(R.id.btn_close).setOnClickListener(v -> dismiss());
         dictResults.setLayoutManager(new LinearLayoutManager(getActivity()));
         mAdapter = new DictionaryAdapter(getActivity(), this);
         loadDictionary();
     }
 
     private void loadDictionary() {
-        if(noNetwork.getVisibility() == View.VISIBLE || googleSearch.getVisibility() == View.VISIBLE) {
+        if (noNetwork.getVisibility() == View.VISIBLE || googleSearch.getVisibility() == View.VISIBLE) {
             noNetwork.setVisibility(View.GONE);
             googleSearch.setVisibility(View.GONE);
         }
@@ -142,7 +124,7 @@ public class DictionaryFragment extends DialogFragment implements DictionaryCall
     }
 
     private void loadWikipedia() {
-        if(noNetwork.getVisibility() == View.VISIBLE || googleSearch.getVisibility() == View.VISIBLE) {
+        if (noNetwork.getVisibility() == View.VISIBLE || googleSearch.getVisibility() == View.VISIBLE) {
             noNetwork.setVisibility(View.GONE);
             googleSearch.setVisibility(View.GONE);
         }

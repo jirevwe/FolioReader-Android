@@ -200,6 +200,9 @@ body {
     background-color: transparent !important;
 }
 
+/*
+Night mode
+*/
 html.nightMode {
     background-color: #131313 !important;
 }
@@ -218,6 +221,19 @@ html.nightMode .highlight_green {background:rgba(192, 237, 114, 0.9)}
 html.nightMode .highlight_blue {background:rgba(173, 216, 255, 0.9)}
 html.nightMode .highlight_pink {background:rgba(255, 176, 202, 0.9)}
 html.nightMode .highlight_underline {border-bottom: 2px solid rgba(240, 40, 20, 0.6)}
+
+/*
+Solar mode
+*/
+html.solarMode {
+    background-color: #F3E8D2 !important;
+}
+
+html.solarMode .highlight_yellow {background:rgba(255, 235, 107, 0.9)}
+html.solarMode .highlight_green {background:rgba(192, 237, 114, 0.9)}
+html.solarMode .highlight_blue {background:rgba(173, 216, 255, 0.9)}
+html.solarMode .highlight_pink {background:rgba(255, 176, 202, 0.9)}
+html.solarMode .highlight_underline {border-bottom: 2px solid rgba(240, 40, 20, 0.6)}
 
 
 /*

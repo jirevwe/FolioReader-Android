@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.folioreader.ui.folio.activity.ContentHighlightActivity">
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context="com.folioreader.ui.folio.activity.ContentHighlightActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
@@ -32,9 +32,10 @@
                 android:layout_centerInParent="true"
                 android:layout_margin="16dp"
                 android:scaleType="centerCrop"
-                android:src="@drawable/ic_close_green_24dp" />
+                android:src="@drawable/ic_close_green_24dp"/>
 
-            <LinearLayout android:id="@+id/layout_content_highlights"
+            <LinearLayout
+                android:id="@+id/layout_content_highlights"
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
@@ -50,7 +51,7 @@
                     android:gravity="center"
                     android:padding="5dp"
                     android:text="@string/contents"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"/>
 
                 <TextView
                     android:id="@+id/btn_highlights"
@@ -60,7 +61,7 @@
                     android:gravity="center"
                     android:padding="5dp"
                     android:text="@string/highlights"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"/>
             </LinearLayout>
 
             <View
@@ -68,7 +69,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0.5dp"
                 android:layout_alignParentBottom="true"
-                android:background="@android:color/black" />
+                android:background="@android:color/black"/>
         </RelativeLayout>
     </android.support.v7.widget.Toolbar>
 

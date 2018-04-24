@@ -33,28 +33,22 @@ public class AppUtil {
     private static final String TAG = AppUtil.class.getSimpleName();
     private static final String FOLIO_READER_ROOT = "folioreader";
 
-    private enum FileType {
-        OPS,
-        OEBPS,
-        NONE
-    }
-
     public static Map<String, String> toMap(String jsonString) {
         Map<String, String> map = new HashMap<String, String>();
         try {
             JSONArray jsonArray = new JSONArray(jsonString);
             JSONObject jObject = jsonArray.getJSONObject(0);
             Iterator<String> keysItr = jObject.keys();
-        while(keysItr.hasNext()) {
-            String key = keysItr.next();
-            Object value = null;
-            value = jObject.get(key);
+            while (keysItr.hasNext()) {
+                String key = keysItr.next();
+                Object value = null;
+                value = jObject.get(key);
 
-            if(value instanceof JSONObject) {
-                value = toMap(value.toString());
+                if (value instanceof JSONObject) {
+                    value = toMap(value.toString());
+                }
+                map.put(key, value.toString());
             }
-            map.put(key, value.toString());
-        }
         } catch (JSONException e) {
             Log.e(TAG, "toMap failed", e);
         }
@@ -153,15 +147,14 @@ public class AppUtil {
         return 0;
     }
 
-
     public static void saveConfig(Context context, Config config) {
         JSONObject obj = new JSONObject();
         try {
             obj.put(Config.CONFIG_FONT, config.getFont());
             obj.put(Config.CONFIG_FONT_SIZE, config.getFontSize());
-            obj.put(Config.CONFIG_IS_NIGHTMODE, config.isNightMode());
-            obj.put(Config.CONFIG_IS_THEMECOLOR, config.getThemeColor());
-            obj.put(Config.CONFIG_IS_TTS,config.isShowTts());
+            obj.put(Config.CONFIG_IS_COLOR_MODE, config.getColorMode().getValue());
+            obj.put(Config.CONFIG_IS_THEME_COLOR, config.getThemeColor());
+            obj.put(Config.CONFIG_IS_TTS, config.isShowTts());
             SharedPreferenceUtil.
                     putSharedPreferencesString(
                             context, Config.INTENT_CONFIG, obj.toString());
@@ -182,6 +175,12 @@ public class AppUtil {
             }
         }
         return null;
+    }
+
+    private enum FileType {
+        OPS,
+        OEBPS,
+        NONE
     }
 }
 

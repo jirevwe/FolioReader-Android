@@ -12,28 +12,39 @@ public class Config implements Parcelable {
     public static final String INTENT_CONFIG = "config";
     public static final String CONFIG_FONT = "font";
     public static final String CONFIG_FONT_SIZE = "font_size";
-    public static final String CONFIG_IS_NIGHTMODE = "is_night_mode";
-    public static final String CONFIG_IS_THEMECOLOR = "theme_color";
+    public static final String CONFIG_IS_COLOR_MODE = "color_mode";
+    public static final String CONFIG_IS_THEME_COLOR = "theme_color";
     public static final String CONFIG_IS_TTS = "is_tts";
     public static final String INTENT_PORT = "port";
+    public static final Creator<Config> CREATOR = new Creator<Config>() {
+        @Override
+        public Config createFromParcel(Parcel source) {
+            return new Config(source);
+        }
+
+        @Override
+        public Config[] newArray(int size) {
+            return new Config[size];
+        }
+    };
     private int font;
     private int fontSize;
-    private boolean nightMode;
     private int themeColor;
     private boolean showTts;
+    private ColorMode colorMode;
 
-    public Config(int font, int fontSize, boolean nightMode, int iconcolor, boolean showTts) {
+    public Config(int font, int fontSize, ColorMode colorMode, int iconColor, boolean showTts) {
         this.font = font;
         this.fontSize = fontSize;
-        this.nightMode = nightMode;
-        this.themeColor = iconcolor;
+        this.colorMode = colorMode;
+        this.themeColor = iconColor;
         this.showTts = showTts;
     }
 
     private Config(ConfigBuilder configBuilder) {
         font = configBuilder.mFont;
         fontSize = configBuilder.mFontSize;
-        nightMode = configBuilder.mNightMode;
+        colorMode = configBuilder.colorMode;
         themeColor = configBuilder.mThemeColor;
         showTts = configBuilder.mShowTts;
     }
@@ -41,23 +52,35 @@ public class Config implements Parcelable {
     public Config(JSONObject jsonObject) {
         font = jsonObject.optInt(CONFIG_FONT);
         fontSize = jsonObject.optInt(CONFIG_FONT_SIZE);
-        nightMode = jsonObject.optBoolean(CONFIG_IS_NIGHTMODE);
-        themeColor = jsonObject.optInt(CONFIG_IS_THEMECOLOR);
+        colorMode = ColorMode.values()[jsonObject.optInt(CONFIG_IS_COLOR_MODE)];
+        themeColor = jsonObject.optInt(CONFIG_IS_THEME_COLOR);
         showTts = jsonObject.optBoolean(CONFIG_IS_TTS);
     }
 
     private Config() {
         fontSize = 2;
         font = 3;
-        nightMode = false;
+        colorMode = ColorMode.white;
         themeColor = R.color.app_green;
         showTts = true;
     }
 
-    private Config(Parcel in) {
-        readFromParcel(in);
+    protected Config(Parcel in) {
+        this.font = in.readInt();
+        this.fontSize = in.readInt();
+        this.themeColor = in.readInt();
+        this.showTts = in.readByte() != 0;
+        int tmpColorMode = in.readInt();
+        this.colorMode = tmpColorMode == -1 ? null : ColorMode.values()[tmpColorMode];
     }
 
+    public ColorMode getColorMode() {
+        return colorMode;
+    }
+
+    public void setColorMode(ColorMode colorMode) {
+        this.colorMode = colorMode;
+    }
 
     public int getFont() {
         return font;
@@ -74,15 +97,6 @@ public class Config implements Parcelable {
     public void setFontSize(int fontSize) {
         this.fontSize = fontSize;
     }
-
-    public boolean isNightMode() {
-        return nightMode;
-    }
-
-    public void setNightMode(boolean nightMode) {
-        this.nightMode = nightMode;
-    }
-
 
     public int getThemeColor() {
         return themeColor;
@@ -101,14 +115,13 @@ public class Config implements Parcelable {
     }
 
     @Override
-
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Config)) return false;
 
         Config config = (Config) o;
 
-        return font == config.font && fontSize == config.fontSize && nightMode == config.nightMode;
+        return font == config.font && fontSize == config.fontSize && colorMode == config.colorMode;
     }
 
     @Override
@@ -117,18 +130,24 @@ public class Config implements Parcelable {
         result = 31 * result
                 + fontSize;
         result = 31 * result
-                + (nightMode ? 1 : 0);
+                + colorMode.getValue();
         return result;
     }
 
     @Override
     public String toString() {
         return "Config{"
-                + "font="
-                + font
+                + "font=" + font
                 + ", fontSize=" + fontSize
-                + ", nightMode=" + nightMode
+                + ", colorMode=" + colorMode.toString()
                 + '}';
+    }
+
+    private void readFromParcel(Parcel in) {
+        font = in.readInt();
+        fontSize = in.readInt();
+        themeColor = in.readInt();
+        showTts = in.readInt() == 1;
     }
 
     @Override
@@ -138,37 +157,31 @@ public class Config implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(font);
-        dest.writeInt(fontSize);
-        dest.writeInt(nightMode ? 1 : 0);
-        dest.writeInt(themeColor);
-        dest.writeInt(showTts ? 1 : 0);
+        dest.writeInt(this.font);
+        dest.writeInt(this.fontSize);
+        dest.writeInt(this.themeColor);
+        dest.writeByte(this.showTts ? (byte) 1 : (byte) 0);
+        dest.writeInt(this.colorMode == null ? -1 : this.colorMode.getValue());
     }
 
-    private void readFromParcel(Parcel in) {
-        font = in.readInt();
-        fontSize = in.readInt();
-        nightMode = in.readInt() == 1;
-        themeColor = in.readInt();
-        showTts = in.readInt() == 1;
+    public enum ColorMode {
+        white(0), black(1), beige(2);
+
+        private final int id;
+
+        ColorMode(int id) {
+            this.id = id;
+        }
+
+        public int getValue() {
+            return id;
+        }
     }
-
-    public static final Creator<Config> CREATOR = new Creator<Config>() {
-        @Override
-        public Config createFromParcel(Parcel in) {
-            return new Config(in);
-        }
-
-        @Override
-        public Config[] newArray(int size) {
-            return new Config[size];
-        }
-    };
 
     public static class ConfigBuilder {
         private int mFont = 3;
         private int mFontSize = 2;
-        private boolean mNightMode = false;
+        private ColorMode colorMode = ColorMode.white;
         private int mThemeColor = R.color.app_green;
         private boolean mShowTts = true;
 
@@ -182,8 +195,8 @@ public class Config implements Parcelable {
             return this;
         }
 
-        public ConfigBuilder nightmode(boolean nightMode) {
-            mNightMode = nightMode;
+        public ConfigBuilder colorMode(ColorMode colorMode) {
+            this.colorMode = colorMode;
             return this;
         }
 

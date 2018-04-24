@@ -17,4 +17,6 @@
     <color name="white">#FFFFFF</color>
     <color name="underline">#F02814</color>
     <color name="grey_color">#a8a8a8</color>
+    <color name="beige">#f3e8d2</color>
+    <color name="rusted">#e8980c</color>
 </resources>

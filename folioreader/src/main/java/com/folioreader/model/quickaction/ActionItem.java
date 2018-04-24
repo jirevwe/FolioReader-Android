@@ -7,9 +7,9 @@ import android.graphics.drawable.Drawable;
  * Action item, displayed as menu with mIcon and text.
  *
  * @author Lorensius. W. L. T <lorenz@londatiga.net>
- *
- *         Contributors:
- *         - Kevin Peck <kevinwpeck@gmail.com>
+ * <p>
+ * Contributors:
+ * - Kevin Peck <kevinwpeck@gmail.com>
  */
 public class ActionItem {
     private Drawable mIcon;
@@ -69,15 +69,6 @@ public class ActionItem {
     }
 
     /**
-     * Set action mTitle
-     *
-     * @param mTitle action mTitle
-     */
-    public void setTitle(String mTitle) {
-        this.mTitle = mTitle;
-    }
-
-    /**
      * Get action mTitle
      *
      * @return action mTitle
@@ -87,12 +78,12 @@ public class ActionItem {
     }
 
     /**
-     * Set action mIcon
+     * Set action mTitle
      *
-     * @param mIcon {@link Drawable} action mIcon
+     * @param mTitle action mTitle
      */
-    public void setIcon(Drawable mIcon) {
-        this.mIcon = mIcon;
+    public void setTitle(String mTitle) {
+        this.mTitle = mTitle;
     }
 
     /**
@@ -105,6 +96,22 @@ public class ActionItem {
     }
 
     /**
+     * Set action mIcon
+     *
+     * @param mIcon {@link Drawable} action mIcon
+     */
+    public void setIcon(Drawable mIcon) {
+        this.mIcon = mIcon;
+    }
+
+    /**
+     * @return Our action id
+     */
+    public int getActionId() {
+        return mActionId;
+    }
+
+    /**
      * Set action id
      *
      * @param mActionId Action id for this action
@@ -114,10 +121,10 @@ public class ActionItem {
     }
 
     /**
-     * @return Our action id
+     * @return true if button is mSticky, menu stays visible after press
      */
-    public int getActionId() {
-        return mActionId;
+    public boolean isSticky() {
+        return mSticky;
     }
 
     /**
@@ -130,10 +137,12 @@ public class ActionItem {
     }
 
     /**
-     * @return true if button is mSticky, menu stays visible after press
+     * Check if item is mSelected
+     *
+     * @return true or false
      */
-    public boolean isSticky() {
-        return mSticky;
+    public boolean isSelected() {
+        return this.mSelected;
     }
 
     /**
@@ -146,12 +155,12 @@ public class ActionItem {
     }
 
     /**
-     * Check if item is mSelected
+     * Get mThumb image
      *
-     * @return true or false
+     * @return Thumb image
      */
-    public boolean isSelected() {
-        return this.mSelected;
+    public Bitmap getThumb() {
+        return this.mThumb;
     }
 
     /**
@@ -161,14 +170,5 @@ public class ActionItem {
      */
     public void setThumb(Bitmap mThumb) {
         this.mThumb = mThumb;
-    }
-
-    /**
-     * Get mThumb image
-     *
-     * @return Thumb image
-     */
-    public Bitmap getThumb() {
-        return this.mThumb;
     }
 }

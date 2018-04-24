@@ -76,7 +76,7 @@
     <string name="pattern">\\{\\{(-?\\d+\\.?\\d*)\\,(-?\\d+\\.?\\d*)\\}\\,\\s\\{(-?\\d+\\.?\\d*)\\,(-?\\d+\\.?\\d*)\\}\\}</string>
     <!--<string name="pattern2">\\{\\{(-?\\d+\\.?\\d*)\\,(-?\\d+\\.?\\d*)\\}\\,\\s\\{(-?\\d+\\.?\\d*)\\,(-?\\d+\\.?\\d*)\\}\\}</string>-->
     <string name="script_tag_method_call"><![CDATA[<script type=\"text/javascript\">%s</script>]]></string>
-  <string name="underline_highlights">
+    <string name="underline_highlights">
       <span style="border-bottom: 1px solid #ff0000;">%s</span>
   </string>
     <string name="edit_notes">Save your note</string>
@@ -91,4 +91,7 @@
     <string name="dictionary">Dictionary</string>
     <string name="wikipedia">Wikipedia</string>
     <string name="cannot_access_epub_message">Cannot open epub it needs storage access !</string>
+    <string name="folio_reader">Folio Reader</string>
+    <string name="offline">offline</string>
+    <string name="google_search">Google search</string>
 </resources>

@@ -1,7 +1,5 @@
 package com.folioreader.model.quickaction;
 
-import com.folioreader.R;
-
 import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -17,6 +15,8 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.folioreader.R;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,11 +26,18 @@ import java.util.List;
  * and horizontal layout.
  *
  * @author Lorensius W. L. T <lorenz@londatiga.net>
- *
- *         Contributors:
- *         - Kevin Peck <kevinwpeck@gmail.com>
+ * <p>
+ * Contributors:
+ * - Kevin Peck <kevinwpeck@gmail.com>
  */
 public class QuickAction extends PopupWindows implements OnDismissListener {
+    public static final int HORIZONTAL = 0;
+    public static final int VERTICAL = 1;
+    public static final int ANIM_GROW_FROM_LEFT = 1;
+    public static final int ANIM_GROW_FROM_RIGHT = 2;
+    public static final int ANIM_GROW_FROM_CENTER = 3;
+    public static final int ANIM_REFLECT = 4;
+    public static final int ANIM_AUTO = 5;
     private View mRootView;
     private ImageView mArrowUp;
     private ImageView mArrowDown;
@@ -39,25 +46,13 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
     private ScrollView mScroller;
     private OnActionItemClickListener mItemClickListener;
     private OnDismissListener mDismissListener;
-
-    private List<ActionItem> mActionItems = new ArrayList<ActionItem>();
-
+    private List<ActionItem> mActionItems = new ArrayList<>();
     private boolean mDidAction;
-
     private int mChildPos;
     private int mInsertPos;
     private int mAnimStyle;
     private int mOrientation;
     private int mRootWidth = 0;
-
-    public static final int HORIZONTAL = 0;
-    public static final int VERTICAL = 1;
-
-    public static final int ANIM_GROW_FROM_LEFT = 1;
-    public static final int ANIM_GROW_FROM_RIGHT = 2;
-    public static final int ANIM_GROW_FROM_CENTER = 3;
-    public static final int ANIM_REFLECT = 4;
-    public static final int ANIM_AUTO = 5;
 
     /**
      * Constructor for default vertical layout
@@ -203,10 +198,10 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
 
             RelativeLayout.LayoutParams params =
                     new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
-                            LayoutParams.FILL_PARENT);
+                            LayoutParams.MATCH_PARENT);
 
             separator.setLayoutParams(params);
-            separator.setPadding(5, 0, 5, 0);
+            separator.setPadding(4, 0, 4, 0);
 
             mTrack.addView(separator, mInsertPos);
 
@@ -446,7 +441,7 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
      * is dismissed
      * by clicking outside the dialog or clicking on sticky item.
      */
-    public void setOnDismissListener(QuickAction.OnDismissListener listener) {
+    public void setOnDismissListener(OnDismissListener listener) {
         setOnDismissListener(this);
 
         mDismissListener = listener;
@@ -463,13 +458,13 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
      * Listener for item click
      */
     public interface OnActionItemClickListener {
-        public abstract void onItemClick(QuickAction source, int pos, int actionId);
+        void onItemClick(QuickAction source, int pos, int actionId);
     }
 
     /**
      * Listener for window dismiss
      */
     public interface OnDismissListener {
-        public abstract void onDismiss();
+        void onDismiss();
     }
 }

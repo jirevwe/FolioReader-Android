@@ -35,6 +35,8 @@ import java.util.Hashtable;
  * Created by mahavir on 3/30/16.
  */
 public class UiUtil {
+    private static final Hashtable<String, SoftReference<Typeface>> fontCache = new Hashtable<String, SoftReference<Typeface>>();
+
     public static void setCustomFont(View view, Context ctx, AttributeSet attrs,
                                      int[] attributeSet, int fontId) {
         TypedArray a = ctx.obtainStyledAttributes(attrs, attributeSet);
@@ -62,8 +64,6 @@ public class UiUtil {
         return true;
     }
 
-    private static final Hashtable<String, SoftReference<Typeface>> fontCache = new Hashtable<String, SoftReference<Typeface>>();
-
     public static Typeface getFont(Context c, String name) {
         synchronized (fontCache) {
             if (fontCache.get(name) != null) {
@@ -89,8 +89,7 @@ public class UiUtil {
                 ContextCompat.getColor(context, selectedColor),
                 ContextCompat.getColor(context, unselectedColor)
         };
-        ColorStateList list = new ColorStateList(states, colors);
-        return list;
+        return new ColorStateList(states, colors);
     }
 
     public static void keepScreenAwake(boolean enable, Context context) {
@@ -105,22 +104,28 @@ public class UiUtil {
 
     public static void setBackColorToTextView(UnderlinedTextView textView, String type) {
         Context context = textView.getContext();
-        if (type.equals("yellow")) {
-            setUnderLineColor(textView, context, R.color.yellow, R.color.yellow);
-        } else if (type.equals("green")) {
-            setUnderLineColor(textView, context, R.color.green, R.color.green);
-        } else if (type.equals("blue")) {
-            setUnderLineColor(textView, context, R.color.blue, R.color.blue);
-        } else if (type.equals("pink")) {
-            setUnderLineColor(textView, context, R.color.pink, R.color.pink);
-        } else if (type.equals("underline")) {
-            setUnderLineColor(textView, context, android.R.color.transparent, android.R.color.holo_red_dark);
-            textView.setUnderlineWidth(2.0f);
+        switch (type) {
+            case "yellow":
+                setUnderLineColor(textView, context, R.color.yellow, R.color.yellow);
+                break;
+            case "green":
+                setUnderLineColor(textView, context, R.color.green, R.color.green);
+                break;
+            case "blue":
+                setUnderLineColor(textView, context, R.color.blue, R.color.blue);
+                break;
+            case "pink":
+                setUnderLineColor(textView, context, R.color.pink, R.color.pink);
+                break;
+            case "underline":
+                setUnderLineColor(textView, context, android.R.color.transparent, android.R.color.holo_red_dark);
+                textView.setUnderlineWidth(2.0f);
+                break;
         }
     }
 
 
-    private static void setUnderLineColor(UnderlinedTextView underlinedTextView, Context context, int background,int underlinecolor) {
+    private static void setUnderLineColor(UnderlinedTextView underlinedTextView, Context context, int background, int underlinecolor) {
         underlinedTextView.setBackgroundColor(ContextCompat.getColor(context,
                 background));
         underlinedTextView.setUnderLineColor(ContextCompat.getColor(context,
@@ -130,8 +135,7 @@ public class UiUtil {
     public static float convertDpToPixel(float dp, Context context) {
         Resources resources = context.getResources();
         DisplayMetrics metrics = resources.getDisplayMetrics();
-        float px = dp * ((float) metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
-        return px;
+        return dp * ((float) metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
     }
 
     public static void copyToClipboard(Context context, String text) {

@@ -17,7 +17,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -40,23 +39,20 @@ public class ConfigBottomSheetDialogFragment extends BottomSheetDialogFragment i
 
     public static final int DAY_BUTTON = 30;
     public static final int NIGHT_BUTTON = 31;
+    public static final int BEIGE_BUTTON = 32;
     private static final int FADE_DAY_NIGHT_MODE = 500;
 
     private CoordinatorLayout.Behavior mBehavior;
-    private boolean mIsNightMode = false;
-
+    private Config.ColorMode colorMode;
 
     private RelativeLayout mContainer;
-    private ImageView mDayButton;
-    private ImageView mNightButton;
+    private View mDayButton;
+    private View mNightButton;
+    private View mBeigeButton;
     private SeekBar mFontSizeSeekBar;
     private View mDialogView;
     private ConfigDialogCallback mConfigDialogCallback;
     private Config mConfig;
-
-    public interface ConfigDialogCallback {
-        void onOrientationChange(int orentation);
-    }
 
     @Nullable
     @Override
@@ -96,23 +92,22 @@ public class ConfigBottomSheetDialogFragment extends BottomSheetDialogFragment i
         mFontSizeSeekBar.setProgress(mConfig.getFontSize());
         configSeekBar();
         selectFont(mConfig.getFont(), false);
-        mIsNightMode = mConfig.isNightMode();
-        if (mIsNightMode) {
+        colorMode = mConfig.getColorMode();
+        if (colorMode == Config.ColorMode.black) {
             mContainer.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.night));
-        } else {
-            mContainer.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.white));
-        }
-
-        if (mIsNightMode) {
-            mDayButton.setSelected(false);
             mNightButton.setSelected(true);
-            UiUtil.setColorToImage(getActivity(), mConfig.getThemeColor(), mNightButton.getDrawable());
-            UiUtil.setColorToImage(getActivity(), R.color.app_gray, mDayButton.getDrawable());
-        } else {
+            mDayButton.setSelected(false);
+            mBeigeButton.setSelected(false);
+        } else if (colorMode == Config.ColorMode.white) {
+            mContainer.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.white));
             mDayButton.setSelected(true);
             mNightButton.setSelected(false);
-            UiUtil.setColorToImage(getActivity(), mConfig.getThemeColor(), mDayButton.getDrawable());
-            UiUtil.setColorToImage(getActivity(), R.color.app_gray, mNightButton.getDrawable());
+            mBeigeButton.setSelected(false);
+        } else if (colorMode == Config.ColorMode.beige) {
+            mContainer.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.beige));
+            mBeigeButton.setSelected(true);
+            mDayButton.setSelected(false);
+            mNightButton.setSelected(false);
         }
 
         mConfigDialogCallback = (ConfigDialogCallback) getActivity();
@@ -121,15 +116,17 @@ public class ConfigBottomSheetDialogFragment extends BottomSheetDialogFragment i
     private void inflateView() {
         mContainer = (RelativeLayout) mDialogView.findViewById(R.id.container);
         mFontSizeSeekBar = (SeekBar) mDialogView.findViewById(R.id.seekbar_font_size);
-        mDayButton = (ImageView) mDialogView.findViewById(R.id.day_button);
-        mNightButton = (ImageView) mDialogView.findViewById(R.id.night_button);
+        mDayButton = mDialogView.findViewById(R.id.day_button);
+        mNightButton = mDialogView.findViewById(R.id.night_button);
+        mBeigeButton = mDialogView.findViewById(R.id.beige_button);
         mDayButton.setTag(DAY_BUTTON);
         mNightButton.setTag(NIGHT_BUTTON);
+        mBeigeButton.setTag(BEIGE_BUTTON);
         mDayButton.setOnClickListener(this);
         mNightButton.setOnClickListener(this);
+        mBeigeButton.setOnClickListener(this);
         mDialogView.findViewById(R.id.btn_vertical_orentation).setSelected(true);
     }
-
 
     private void configFonts() {
         ((StyleableTextView) mDialogView.findViewById(R.id.btn_font_andada)).setTextColor(UiUtil.getColorList(getActivity(), mConfig.getThemeColor(), R.color.grey_color));
@@ -210,28 +207,23 @@ public class ConfigBottomSheetDialogFragment extends BottomSheetDialogFragment i
         mConfig.setFont(selectedFont);
         //if (mConfigDialogCallback != null) mConfigDialogCallback.onConfigChange();
         if (isAdded() && isReloadNeeded) {
-            AppUtil.saveConfig(getActivity(),mConfig);
+            AppUtil.saveConfig(getActivity(), mConfig);
             EventBus.getDefault().post(new ReloadDataEvent());
         }
     }
 
-    private void toggleBlackTheme() {
+    private void toggleBlackTheme(int color) {
 
         int day = getResources().getColor(R.color.white);
         int night = getResources().getColor(R.color.night);
-        int darkNight = getResources().getColor(R.color.dark_night);
-        final int diffNightDark = night - darkNight;
+        int beige = getResources().getColor(R.color.beige);
+        int[] colors = {day, night, beige};
 
-        ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(),
-                mIsNightMode ? night : day, mIsNightMode ? day : night);
+        ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colors[colorMode.getValue()], colors[color]);
         colorAnimation.setDuration(FADE_DAY_NIGHT_MODE);
-        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-
-            @Override
-            public void onAnimationUpdate(ValueAnimator animator) {
-                int value = (int) animator.getAnimatedValue();
-                mContainer.setBackgroundColor(value);
-            }
+        colorAnimation.addUpdateListener(animator -> {
+            int value = (int) animator.getAnimatedValue();
+            mContainer.setBackgroundColor(value);
         });
 
         colorAnimation.addListener(new Animator.AnimatorListener() {
@@ -241,9 +233,9 @@ public class ConfigBottomSheetDialogFragment extends BottomSheetDialogFragment i
 
             @Override
             public void onAnimationEnd(Animator animator) {
-                mIsNightMode = !mIsNightMode;
-                mConfig.setNightMode(mIsNightMode);
-                AppUtil.saveConfig(getActivity(),mConfig);
+                colorMode = Config.ColorMode.values()[color];
+                mConfig.setColorMode(colorMode);
+                AppUtil.saveConfig(getActivity(), mConfig);
                 EventBus.getDefault().post(new ReloadDataEvent());
             }
 
@@ -270,7 +262,7 @@ public class ConfigBottomSheetDialogFragment extends BottomSheetDialogFragment i
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 mConfig.setFontSize(progress);
-                AppUtil.saveConfig(getActivity(),mConfig);
+                AppUtil.saveConfig(getActivity(), mConfig);
                 EventBus.getDefault().post(new ReloadDataEvent());
             }
 
@@ -284,30 +276,38 @@ public class ConfigBottomSheetDialogFragment extends BottomSheetDialogFragment i
         });
     }
 
-
     @Override
     public void onClick(View v) {
         switch (((Integer) v.getTag())) {
             case DAY_BUTTON:
-                if (mIsNightMode) {
-                    mIsNightMode = true;
-                    toggleBlackTheme();
+                if (colorMode != Config.ColorMode.white) {
+                    colorMode = Config.ColorMode.white;
+                    toggleBlackTheme(0);
                     mDayButton.setSelected(true);
                     mNightButton.setSelected(false);
+                    mBeigeButton.setSelected(false);
                     setToolBarColor();
                     setAudioPlayerBackground();
-                    UiUtil.setColorToImage(getActivity(), R.color.app_gray, mNightButton.getDrawable());
-                    UiUtil.setColorToImage(getActivity(), mConfig.getThemeColor(), mDayButton.getDrawable());
                 }
                 break;
             case NIGHT_BUTTON:
-                if (!mIsNightMode) {
-                    mIsNightMode = false;
-                    toggleBlackTheme();
+                if (colorMode != Config.ColorMode.black) {
+                    colorMode = Config.ColorMode.black;
+                    toggleBlackTheme(1);
                     mDayButton.setSelected(false);
                     mNightButton.setSelected(true);
-                    UiUtil.setColorToImage(getActivity(), mConfig.getThemeColor(), mNightButton.getDrawable());
-                    UiUtil.setColorToImage(getActivity(), R.color.app_gray, mDayButton.getDrawable());
+                    mBeigeButton.setSelected(false);
+                    setToolBarColor();
+                    setAudioPlayerBackground();
+                }
+                break;
+            case BEIGE_BUTTON:
+                if (colorMode != Config.ColorMode.beige) {
+                    colorMode = Config.ColorMode.beige;
+                    toggleBlackTheme(2);
+                    mDayButton.setSelected(false);
+                    mNightButton.setSelected(false);
+                    mBeigeButton.setSelected(true);
                     setToolBarColor();
                     setAudioPlayerBackground();
                 }
@@ -318,33 +318,45 @@ public class ConfigBottomSheetDialogFragment extends BottomSheetDialogFragment i
     }
 
     private void setToolBarColor() {
-        if (mIsNightMode) {
-            ((Activity) getContext()).
-                    findViewById(R.id.toolbar).
+        if (colorMode == Config.ColorMode.black) {
+            ((Activity) getContext()).findViewById(R.id.toolbar).
                     setBackgroundColor(getContext().getResources().getColor(R.color.white));
             ((TextView) ((Activity) getContext()).
                     findViewById(R.id.lbl_center)).
                     setTextColor(getResources().getColor(R.color.black));
-        } else {
-            ((Activity) getContext()).
-                    findViewById(R.id.toolbar).
+        } else if (colorMode == Config.ColorMode.white) {
+            ((Activity) getContext()).findViewById(R.id.toolbar).
                     setBackgroundColor(getContext().getResources().getColor(R.color.black));
             ((TextView) ((Activity) getContext()).
                     findViewById(R.id.lbl_center)).
                     setTextColor(getResources().getColor(R.color.white));
+        } else if (colorMode == Config.ColorMode.beige) {
+            ((Activity) getContext()).findViewById(R.id.toolbar).
+                    setBackgroundColor(getContext().getResources().getColor(R.color.beige));
+            ((TextView) ((Activity) getContext()).
+                    findViewById(R.id.lbl_center)).
+                    setTextColor(getResources().getColor(R.color.text_color));
         }
 
     }
 
     private void setAudioPlayerBackground() {
-        if (mIsNightMode) {
+        if (colorMode == Config.ColorMode.black) {
             ((Activity) getContext()).
                     findViewById(R.id.container).
                     setBackgroundColor(ContextCompat.getColor(getContext(), R.color.white));
-        } else {
+        } else if (colorMode == Config.ColorMode.white) {
             ((Activity) getContext()).
                     findViewById(R.id.container).
                     setBackgroundColor(ContextCompat.getColor(getContext(), R.color.night));
+        } else if (colorMode == Config.ColorMode.beige) {
+            ((Activity) getContext()).
+                    findViewById(R.id.container).
+                    setBackgroundColor(ContextCompat.getColor(getContext(), R.color.rusted));
         }
+    }
+
+    public interface ConfigDialogCallback {
+        void onOrientationChange(int orentation);
     }
 }

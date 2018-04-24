@@ -4,7 +4,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -18,8 +17,8 @@ import com.folioreader.util.FolioReader;
 import com.folioreader.util.UiUtil;
 
 public class ContentHighlightActivity extends AppCompatActivity {
-    private boolean mIsNightMode;
     private Config mConfig;
+    private Config.ColorMode colorMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,49 +28,38 @@ public class ContentHighlightActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
         mConfig = AppUtil.getSavedConfig(this);
-        mIsNightMode = mConfig != null && mConfig.isNightMode();
+        colorMode = mConfig != null ? mConfig.getColorMode() : Config.ColorMode.black;
         initViews();
     }
 
     private void initViews() {
         UiUtil.setColorToImage(this, mConfig.getThemeColor(), ((ImageView) findViewById(R.id.btn_close)).getDrawable());
         findViewById(R.id.layout_content_highlights).setBackgroundDrawable(UiUtil.getShapeDrawable(this, mConfig.getThemeColor()));
-        if (mIsNightMode) {
+        if (colorMode == Config.ColorMode.black) {
             findViewById(R.id.toolbar).setBackgroundColor(Color.BLACK);
             findViewById(R.id.btn_contents).setBackgroundDrawable(UiUtil.convertColorIntoStateDrawable(this, mConfig.getThemeColor(), R.color.black));
             findViewById(R.id.btn_highlights).setBackgroundDrawable(UiUtil.convertColorIntoStateDrawable(this, mConfig.getThemeColor(), R.color.black));
             ((TextView) findViewById(R.id.btn_contents)).setTextColor(UiUtil.getColorList(this, R.color.black, mConfig.getThemeColor()));
             ((TextView) findViewById(R.id.btn_highlights)).setTextColor(UiUtil.getColorList(this, R.color.black, mConfig.getThemeColor()));
 
-        } else {
+        } else if (colorMode == Config.ColorMode.white) {
             ((TextView) findViewById(R.id.btn_contents)).setTextColor(UiUtil.getColorList(this, R.color.white, mConfig.getThemeColor()));
             ((TextView) findViewById(R.id.btn_highlights)).setTextColor(UiUtil.getColorList(this, R.color.white, mConfig.getThemeColor()));
             findViewById(R.id.btn_contents).setBackgroundDrawable(UiUtil.convertColorIntoStateDrawable(this, mConfig.getThemeColor(), R.color.white));
             findViewById(R.id.btn_highlights).setBackgroundDrawable(UiUtil.convertColorIntoStateDrawable(this, mConfig.getThemeColor(), R.color.white));
+        } else if (colorMode == Config.ColorMode.beige) {
+            ((TextView) findViewById(R.id.btn_contents)).setTextColor(UiUtil.getColorList(this, R.color.beige, mConfig.getThemeColor()));
+            ((TextView) findViewById(R.id.btn_highlights)).setTextColor(UiUtil.getColorList(this, R.color.beige, mConfig.getThemeColor()));
+            findViewById(R.id.btn_contents).setBackgroundDrawable(UiUtil.convertColorIntoStateDrawable(this, mConfig.getThemeColor(), R.color.beige));
+            findViewById(R.id.btn_highlights).setBackgroundDrawable(UiUtil.convertColorIntoStateDrawable(this, mConfig.getThemeColor(), R.color.beige));
         }
 
-
         loadContentFragment();
-        findViewById(R.id.btn_close).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        findViewById(R.id.btn_close).setOnClickListener(v -> finish());
 
-        findViewById(R.id.btn_contents).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadContentFragment();
-            }
-        });
+        findViewById(R.id.btn_contents).setOnClickListener(v -> loadContentFragment());
 
-        findViewById(R.id.btn_highlights).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadHighlightsFragment();
-            }
-        });
+        findViewById(R.id.btn_highlights).setOnClickListener(v -> loadHighlightsFragment());
     }
 
     private void loadContentFragment() {
@@ -89,7 +77,7 @@ public class ContentHighlightActivity extends AppCompatActivity {
         findViewById(R.id.btn_contents).setSelected(false);
         findViewById(R.id.btn_highlights).setSelected(true);
         String bookId = getIntent().getStringExtra(FolioReader.INTENT_BOOK_ID);
-        String bookTitle= getIntent().getStringExtra(Constants.BOOK_TITLE);
+        String bookTitle = getIntent().getStringExtra(Constants.BOOK_TITLE);
         HighlightFragment highlightFragment = HighlightFragment.newInstance(bookId, bookTitle);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.parent, highlightFragment);

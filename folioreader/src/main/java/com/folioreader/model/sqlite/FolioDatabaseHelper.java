@@ -6,16 +6,13 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 public class FolioDatabaseHelper extends SQLiteOpenHelper {
+    public static final String DATABASE_NAME = "FolioReader.db";
+    public static final String KEY_ID = "_id";
     @SuppressWarnings("unused")
     private static final String TAG = "SQLiteOpenHelper";
-
+    private static final int DATABASE_VERSION = 2;
     private static FolioDatabaseHelper mInstance;
     private static SQLiteDatabase myWritableDb;
-
-    public static final String DATABASE_NAME = "FolioReader.db";
-    private static final int DATABASE_VERSION = 2;
-
-    public static final String KEY_ID = "_id";
     private final Context mContext;
 
     public FolioDatabaseHelper(final Context context) {
@@ -56,7 +53,7 @@ public class FolioDatabaseHelper extends SQLiteOpenHelper {
     @Override
     public final void onUpgrade(final SQLiteDatabase db, final int oldVersion,
                                 final int newVersion) {
-		/* PROTECTED REGION ID(DatabaseUpdate) ENABLED START */
+        /* PROTECTED REGION ID(DatabaseUpdate) ENABLED START */
 
         // TODO Implement your database update functionality here and remove the
         // following method call!
@@ -64,7 +61,7 @@ public class FolioDatabaseHelper extends SQLiteOpenHelper {
         //onCreate(db);
         resetAllPreferences(mContext);
 
-		/* PROTECTED REGION END */
+        /* PROTECTED REGION END */
     }
 
     /**

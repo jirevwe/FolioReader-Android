@@ -12,6 +12,9 @@ import android.view.MotionEvent;
 
 public class VerticalSeekbar extends AppCompatSeekBar {
 
+    private OnSeekBarChangeListener mOnChangeListener;
+    private int mLastProgress = 0;
+
     public VerticalSeekbar(Context context) {
         super(context);
     }
@@ -41,14 +44,10 @@ public class VerticalSeekbar extends AppCompatSeekBar {
         super.onDraw(c);
     }
 
-    private OnSeekBarChangeListener mOnChangeListener;
-
     @Override
     public void setOnSeekBarChangeListener(OnSeekBarChangeListener mOnChangeListener) {
         this.mOnChangeListener = mOnChangeListener;
     }
-
-    private int mLastProgress = 0;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -112,12 +111,12 @@ public class VerticalSeekbar extends AppCompatSeekBar {
         }
     }
 
-    public synchronized void setMaximum(int maximum) {
-        setMax(maximum);
-    }
-
     public synchronized int getMaximum() {
         return getMax();
+    }
+
+    public synchronized void setMaximum(int maximum) {
+        setMax(maximum);
     }
 
 }

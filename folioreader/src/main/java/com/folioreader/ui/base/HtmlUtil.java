@@ -25,7 +25,7 @@ public final class HtmlUtil {
 
 
         String jsPath = String.format(context.getString(R.string.script_tag),
-                        "file:///android_asset/js/jsface.min.js");
+                "file:///android_asset/js/jsface.min.js");
         jsPath =
                 jsPath + String.format(context.getString(R.string.script_tag),
                         "file:///android_asset/js/jquery-3.1.1.min.js");
@@ -77,8 +77,10 @@ public final class HtmlUtil {
                 break;
         }
 
-        if (config.isNightMode()) {
+        if (config.getColorMode() == Config.ColorMode.black) {
             classes += " nightMode";
+        } else if (config.getColorMode() == Config.ColorMode.beige) {
+            classes += " solarMode";
         }
 
         switch (config.getFontSize()) {
